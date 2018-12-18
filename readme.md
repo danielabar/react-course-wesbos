@@ -429,6 +429,76 @@ class MyComponent extends React.Component {
 
 **Anytime a custom method needs to reference component instance, define it as a property and arrow function.**
 
+## Handling Events
+
+Now that `this` binding is resolved, `this.myInput` is reference to `<input>` element:
+
+```javascript
+class StorePicker extends React.Component {
+  myInput = React.createRef();
+
+  goToStore = event => {
+    // 1. Stop the form from submitting
+    event.preventDefault();
+    // 2. Get text from input
+    console.log(this.myInput.value.value); // what user typed in
+    // 3. Change page to /store/whatever-they-entered
+  };
+  render() {
+    return (
+      <form className="store-selector" onSubmit={this.goToStore}>
+        <h2>Please Enter A Store</h2>
+        <input
+          type="text"
+          ref={this.myInput}
+          required
+          placeholder="Store Name"
+          defaultValue={getFunName()}
+        />
+        <button type="submit">Visit Store -></button>
+      </form>
+    );
+  }
+}
+```
+
+To change the page, do NOT use `window.location = ...` because that would cause entire page to refresh. Instead want to refresh the url with _push state_, which allows for changing url without refreshing or losing anything that's in-memory. Use react-router to do this.
+
+To get access to router from `StorePicker` component, in this case easy because `StorePicker` is a child of Router:
+
+```javascript
+const Router = () => (
+  <BrowserRouter>
+    <Switch>
+      <Route exact path="/" component={StorePicker} />
+      <Route path="/store/:storeId" component={App} />
+      <Route component={NotFound} />
+    </Switch>
+  </BrowserRouter>
+);
+```
+
+In devtools, when StorePicker component is loaded as result of `http://localhost:3000/`:
+
+![router store picker](doc-images/router-store-picker.png "router store picker")
+
+Also as result of this relationship, `StorePicker` component has Props available to it from router, including `history.push`:
+
+![router props](doc-images/router-props.png "router props")
+
+```javascript
+goToStore = event => {
+  // 1. Stop the form from submitting
+  event.preventDefault();
+  // 2. Get text from input
+  const storeName = this.myInput.value.value; // what user typed in
+  // 3. Change page to /store/whatever-they-entered
+  this.props.history.push(`/store/${storeName}`);
+};
+```
+
+When invoke `push` on router, react-router detects this and re-renders the component for which the new route matches, in this case, `App` component.
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
