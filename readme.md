@@ -499,6 +499,221 @@ goToStore = event => {
 
 When invoke `push` on router, react-router detects this and re-renders the component for which the new route matches, in this case, `App` component.
 
+## Understanding State
+
+State is an object that lives inside of a component that stores all of the data that component (and maybe some of its children) need.
+
+Single source of truth! Concept is we should only need to update data in state, and let react take care of re-rendering whichever parts of DOM are affected and need to update as result of that data (aka state) change.
+
+To demonstrate this, will build out Fish Order form in `Inventory` component. Actually Add Fish form should be a re-usable component `src/components/AddFishForm.js`:
+
+When fish form is submitted, input values should be converted to fish obect.
+
+Note that price is converted to a float so that price is stored as cents (otherwise its string).
+
+```javascript
+class AddFishForm extends React.Component {
+  nameRef = React.createRef();
+  priceRef = React.createRef();
+  statusRef = React.createRef();
+  descRef = React.createRef();
+  imageRef = React.createRef();
+
+  createFish = event => {
+    // 1. stop the form from submitting
+    event.preventDefault();
+    // 2. make a fish object from form inputs
+    const fish = {
+      name: this.nameRef.value.value,
+      price: parseFloat(this.priceRef.value.value),
+      status: this.statusRef.value.value,
+      desc: this.descRef.value.value,
+      image: this.imageRef.value.value
+    };
+    console.log(fish);
+  };
+
+  render() {
+    return (
+      <form className="fish-edit" onSubmit={this.createFish}>
+        <input name="name" ref={this.nameRef} type="text" placeholder="Name" />
+        <input
+          name="price"
+          ref={this.priceRef}
+          type="text"
+          placeholder="Price"
+        />
+        <select name="status" ref={this.statusRef}>
+          <option value="availale">Fresh</option>
+          <option value="unavailable">Sold Out!</option>
+        </select>
+        <textarea name="desc" ref={this.descRef} placeholder="Desc" />
+        <input
+          name="image"
+          ref={this.imageRef}
+          type="text"
+          placeholder="Image"
+        />
+        <button type="submit">+ Add Fish</button>
+      </form>
+    );
+  }
+}
+```
+
+Now that we have a `fish` object, how to get it into state?
+
+Every component can have its own state, but usually have one parent state on a higher component, which gets passed down to all the children. Will use `App` component for this purpose.
+
+Cannot pass data up from child to parent but can pass down from parent to child.
+
+Start by adding initial/empty state to `App.js`. i.e. what should state look like before component mounts.
+
+State can be defined in constructor or property (preferred).
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+
+  render() {
+    // ...
+  }
+}
+```
+
+Methods that update state and state object being updated need to live in same component.
+
+Define class property arrow function on App for adding a fish to state:
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+
+  addFish = fish => {
+    // ...
+  };
+
+  render() {
+    // ...
+  }
+}
+```
+
+`addFish` function lives in `App`, but want to invoke it from `AddFishForm` component which is two levels down.
+
+Solution is to use props - have `App` component pass down `addFish` function as props to `Inventory` component, which in turn can pass it down to `AddFishForm`. By convention, keep prop name same as function name:
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+
+  addFish = fish => {
+    // ...
+  };
+
+  render() {
+    return (
+      // ...
+      <Inventory addFish={this.addFish} />
+    );
+  }
+}
+```
+
+Then `addFish` becomes available as prop in `Inventory` component, which can pass it down to `AddFishForm`. Notice it's `this.props.addFish` rather than `this.addFish` because `addFish` function isn't defined in `Inventory` component, rather, it received it via props from its parent `Inventory`:
+
+```javascript
+class Inventory extends React.Component {
+  render() {
+    return (
+      <div className="inventory">
+        <p>Inventory</p>
+        <AddFishForm addFish={this.props.addFish} />
+      </div>
+    );
+  }
+}
+```
+
+Now `addFish` function can be invoked from `AddFishForm` component:
+
+```javascript
+class AddFishForm extends React.Component {
+  createFish = event => {
+    // 1. stop the form from submitting
+    event.preventDefault();
+    // 2. make a fish object from form inputs
+    const fish = {
+      name: this.nameRef.value.value,
+      price: parseFloat(this.priceRef.value.value),
+      status: this.statusRef.value.value,
+      desc: this.descRef.value.value,
+      image: this.imageRef.value.value
+    };
+    // 3. add the fish to list of fishes maintained by app
+    this.props.addFish(fish);
+  };
+  render() {
+    // ...
+  }
+}
+```
+
+Now back in `App` component, use react's `setState` method to update state. **Never update `state` directly!**
+
+**Modifying state:**
+
+1. Take a copy of the existing state - never want to reach into state to modify it - this is a mutation, causes performance issues, things updating out of order. Use object spread operator, eg: `const fishes = {...state.fishes}`. This is not a deep clone but that's fine.
+2. Modify the copy.
+3. Call `setState` to update state, passing in portion of state to be updated.
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+
+  addFish = fish => {
+    // 1. Take a copy of the existing state
+    const fishes = { ...state.fishes };
+    // 2. Modify the copy
+    fishes[`fish${Date.now()}`] = fish;
+    // 3. Update state
+  };
+
+  render() {
+    // ...
+  }
+}
+```
+
+To test it out, open `App` component in react dev tools and observe State, then fill out Inventory form.
+
+Should also reset form after it's submitted:
+
+```javascript
+class AddFishForm extends React.Component {
+  createFish = event => {
+    // ...
+    event.currentTarget.reset();
+  };
+
+  render() {
+    // ...
+  }
+}
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
