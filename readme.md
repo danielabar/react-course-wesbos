@@ -282,6 +282,153 @@ class StorePicker extends React.Component {
 export default StorePicker;
 ```
 
+## Events, Refs and this Binding
+
+Events: Handling clicks, hover, form submit etc. Very similar to handling events in vanilla js except react wraps event in `SyntheticEvent`, which handls any cross browser/device differences between events.
+
+Events are done inline. Specify event in camelCase, specify function to be executed, and define method in component. NOTE only the function reference is provided, NOT the function invocation, i.e. `this.handleClick`, NOT `this.handleClick()`. Reason is if added `()`, it would run when component mounts, which is not wanted. Want it to only run when button is clicked.
+
+```javascript
+class MyComponent extends React.Component {
+  handleClick() {
+    alert("Heyyy!");
+  }
+  render() {
+    return (
+      <form className="store-selector">
+        <button onClick={this.handleClick}>Click me!</button>
+      </form>
+    );
+  }
+}
+```
+
+Can also listen to `obSubit` event for `form` element. If you do it naively like this, console log will be displayed, but then page will reload because that's the default browser action on form submission:
+
+```javascript
+class StorePicker extends React.Component {
+  goToStore() {
+    console.log("going to store...");
+  }
+  render() {
+    return (
+      <form className="store-selector" onSubmit={this.goToStore}>
+        <h2>Please Enter A Store</h2>
+        type="text" required placeholder="Store Name" defaultValue=
+        {getFunName()}
+        />
+        <button type="submit">Visit Store -></button>
+      </form>
+    );
+  }
+}
+```
+
+But for SPA, this is undesirable, want to handle it client side, not server side. To do this, pass `event` object to form handler and call `preventDefault`:
+
+```javascript
+class StorePicker extends React.Component {
+  goToStore(event) {
+    event.preventDefault();
+    console.log("going to store...");
+  }
+  render() {
+    return (
+      <form className="store-selector" onSubmit={this.goToStore}>
+        <h2>Please Enter A Store</h2>
+        type="text" required placeholder="Store Name" defaultValue=
+        {getFunName()}
+        />
+        <button type="submit">Visit Store -></button>
+      </form>
+    );
+  }
+}
+```
+
+Now to implement `goToStore`, need to get text from input, but DO NOT REACH OUT TO DOM DIRECTLY!
+
+Two options:
+
+1. `refs`, which is kind of touching DOM, will do for this simple example hre.
+2. Sync input with state (will do later in course)
+
+`ref`: React solution for referencing a DOM node on the page.
+
+```javascript
+class StorePicker extends React.Component {
+  myInput = React.createRef();
+
+  goToStore(event) {
+    // 1. Stop the form from submitting
+    event.preventDefault();
+    // 2. Get text from input -> error: this is undefined
+    console.log(this.myInput);
+    // 3. Change page to /store/whatever-they-entered
+  }
+  render() {
+    return (
+      <form className="store-selector" onSubmit={this.goToStore}>
+        <h2>Please Enter A Store</h2>
+        <input
+          type="text"
+          ref={this.myInput}
+          required
+          placeholder="Store Name"
+          defaultValue={getFunName()}
+        />
+        <button type="submit">Visit Store -></button>
+      </form>
+    );
+  }
+}
+```
+
+### Binding
+
+**ISSUE:** `this` is supposed to be instance of component but it's undefined in form submission handler `goToStore`, WHY??
+
+Because of _binding_ in React...
+
+All of the built-in React methods such as `render`, `componentDidMount` etc are within the parent `React.Component` so `this` refers to the component instance. But any new methods added to a component are not bound by default, therefore cannot reference the component in these. Need a solution because need to do things like `this.setState...` inside custom methods.
+
+**SOLUTION:** Bind custom methods. One option is to use regular ES6 - add a `constructor`, which will run before component is created, then use function `bind` so that `this` in `goToStore` method will refer to component instance:
+
+```javascript
+class MyComponent extends React.Component {
+  consturctor() {
+    super(); // first create React.Component
+    // bind all custom methods
+    this.goToStore = this.goToStore.bind(this);
+  }
+  goToStore() {
+    // ...
+  }
+  render() {
+    // ...
+  }
+}
+```
+
+**ISSUE** with above solution: As more custom methods added, constructor gets clutterred with numerous bind statements.
+
+**ALTERNATE SOLUTION** Define `goToStore` as a `property` of a class rather than a method, whose value is an arrow function. This will be bound to the instance:
+
+```javascript
+class MyComponent extends React.Component {
+  goToStore = () => {
+    console.log(this); // instance of MyComponent
+  };
+  render() {
+    <form className="store-selector" onSubmit={this.goToStore}>
+      ...
+    </form>;
+  }
+}
+```
+
+**Anytime a custom method needs to reference component instance, define it as a property and arrow function.**
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
