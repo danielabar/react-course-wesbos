@@ -4,3 +4,7 @@ node_modules/
 .idea
 notes.md
 .vscode
+
+# firebase
+fb.txt
+.env

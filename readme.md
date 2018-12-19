@@ -1025,6 +1025,100 @@ class Order extends React.Component {
 }
 
 export default Order;
+```
+
+## Persisting our State with Firebase
+
+When page is refreshed, lose all inventory and order data. Will use Google service Firebase - real-time data persistence. Uses websockets to relay persisted data to all other connected clients.
+
+Want to "mirror" state to Firebase. To get started:
+
+- Create account or sign in with your Google account: [https://google.firebase.com](Firebase).
+- Select Add project
+- Enter project name such as "Catch of the day yourName"
+- Select countru
+- Create project
+- After project created, click Develop from sidebar and select Database. Select Real-time database (not the beta Firestore).
+- Temporarily change Rules to allow read/write to all (will change in auth section of this course later)
+
+Click Project Overview fromsidebar, click web icon to add firebase to a web app. Make a note of config apiKey and other info.
+
+Copy config object.
+
+Back in project source, create new file `src/base.js`. Import `re-base` which is a react/firebase package to mirror state to firebase. Also import the official firebase package:
+
+```javascript
+// react Firebase package
+import Rebase from "re-base";
+// official firebase package
+import firebase from "firebase";
+
+// create and configre firebase app
+const firebaseApp = firebase.initializeApp({
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL
+});
+
+// create rebase binding
+const base = Rebase.createClass(firebaseApp.database());
+
+// This is a named export
+export { firebaseApp };
+
+// This is a default export
+export default base;
+```
+
+Now modify `App` component to mirror fish state to firebase. Need to wait till component is on the page, then start syncing. Use react _lifecycle methods_. Will use `componentDidMount` - called as soon as component has been loaded on the page.
+
+By convention, define lifecycle methods just after `state`, but beforoe all custom methods.
+
+Firebase `ref` is reference to a piece of data, NOT react ref to a dom element.
+
+Want to sync only with name of store, which comes from url. React router exposes props on target component (`App` in this case). Can get storeId from `this.props.match.params.storeId`.
+
+```javascript
+// other imports...
+import base from "../base";
+
+class App extends React.Component {
+  state = {...}
+
+  componentDidMount() {
+    componentDidMount() {
+      // extract params from data exposed by react-router
+      const { params } = this.props.match;
+      this.ref = base.syncState(`${params.storeId}/fishes`, {
+        context: this,
+        state: "fishes"
+      });
+    }
+  }
+
+  // other lifecycle methods as needed...
+
+  // custom methods...
+
+  render() {...}
+}
+```
+
+Now run app, click Load Sample, then go to your Firebase database to see its been populated with fishes.
+
+Also refresh the app and see how the sample fishes automatically load from firebase.
+
+To avoid memory leak whenever `App` compounted is unmounted then re-mounted (eg: user going back to select a different store), need to cleanup re-base listener. i.e. `base.syncState` creates a listener, so need to "un-listen" when component is unmounted.
+
+This is why we stored a reference to database earlier in `componentDidMount`: `this.ref = base.syncState(...)`, so now can use that reference to clean up:
+
+```javascript
+class App extends React.Component {
+  componentWillUnmount() {
+    base.removeBinding(this.ref);
+  }
+}
+```
 
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
@@ -1101,6 +1195,8 @@ RewriteRule ^index\.html\$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
+
+```
 
 ```
 
