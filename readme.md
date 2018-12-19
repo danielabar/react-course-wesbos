@@ -714,6 +714,55 @@ class AddFishForm extends React.Component {
 }
 ```
 
+## Loading data into state onClick
+
+Goal: Create 'Load Sample Fishes' button that will load several fishes into state so we don't need to do manual data entry to run the app.
+
+Start with `Inventory` component with button and click handler, but it invokes a function passed in via props:
+
+```javascript
+class Inventory extends React.Component {
+  render() {
+    return (
+      <div className="inventory">
+        <p>Inventory</p>
+        <AddFishForm addFish={this.props.addFish} />
+        <button onClick={this.props.loadSampleFishes}>
+          Load Sample Fishes
+        </button>
+      </div>
+    );
+  }
+}
+```
+
+The `loadSampleFishes` function will be defined on `App` component because it updates state, therefore must live in same component where state is defined:
+
+```javascript
+class App extends React.Component {
+  loadSampleFishes = () => {};
+
+  render() {
+    // ...
+    <Inventory
+      addFish={this.addFish}
+      loadSampleFishes={this.loadSampleFishes}
+    />;
+  }
+}
+```
+
+To implement `loadSampleFishes`, make use of [catch-of-the-day/src/sample-fishes.js](catch-of-the-day/src/sample-fishes.js)
+
+```javascript
+import samplefishes from "../sample-fishes";
+class App extends React.Component {
+  loadSampleFishes = () => {
+    this.setState({ fishes: samplefishes });
+  };
+}
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
