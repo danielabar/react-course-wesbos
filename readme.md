@@ -842,6 +842,108 @@ class Fish extends React.Component {
 export default Fish;
 ```
 
+## Updating our Order State
+
+'Add to Cart' button in `Fish` component should dispay as styled 'SOLD OUT' if item is sold out, otherwise as regular button that will add that fish item to the order.
+
+Whether its sold out or not is controleld from Inventory status dropdown.
+
+Modify `Fish` component, define `isAvailable` boolean depending on value of `status` (aka `this.props.details.status`), then use the opposite of isAvailable to control button disabled state. Also use ternary operator to set button text depending on availability:
+
+```javascript
+class Fish extends React.Component {
+  render() {
+    const { image, name, price, desc, status } = this.props.details;
+    const isAvailable = status === "available";
+    return (
+      // ...
+      <button disabled={!isAvailable}>
+        {isAvailable ? "Add to Cart" : "Sold Out"}
+      </button>
+      // ...
+    );
+  }
+}
+```
+
+To build up order object in state, will have fish key (eg: `fish1`), and value will be amount desired of that fish (1, 2, etc.).
+
+Order state lives in `App` component so this is where an add to order function will be defined:
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+
+  addToOrder = key => {
+    // 1. take a copy of state
+    const order = { ...this.state.order };
+    // 2. add to order or update the number in our order
+    order[key] = order[key] + 1 || 1;
+    // 3. call setState to update order in state
+    this.setState({ order });
+  };
+
+  // ...
+}
+```
+
+To try out new `addToOrder` logic before hooking it up via props, can run manually with React dev tools. `$r` to get reference to `App` component, then invoke `$r.addToOrder('fish1')` in console. Then observe how `state.order` is updated.
+
+After manual testing confirmed its working ok, pass `addToOrder` function into `Fish` component via props.
+
+Since function needs to be invoked with fish `key`, have to pass that in as well with some prop name other than `key`, which is reserved by react. Even though specified with react `key={key}`, this is only available internally to react:
+
+```javascript
+class App extends React.Component {
+  addToOrder = key => {
+    // ...
+  };
+  render() {
+    // ...
+    <ul className="fishes">
+      {Object.keys(this.state.fishes).map(key => (
+        <Fish
+          key={key}
+          index={key}
+          details={this.state.fishes[key]}
+          addToOrder={this.addToOrder}
+        />
+      ))}
+    </ul>;
+  }
+}
+```
+
+Then modify `Fish` component to invoke `addToOrder` function when button is clicked, providing `this.props.index` as the fish key:
+
+```javascript
+class Fish extends React.Component {
+  handleClick = () => {
+    this.props.addToOrder(this.props.index);
+  };
+  render() {
+    // ...
+    <button disabled={!isAvailable} onClick={this.handleClick}>
+      {isAvailable ? "Add to Order" : "Sold Out"}
+    </button>;
+  }
+}
+```
+
+Optionally, can also define the function inline:
+
+```javascript
+<button
+  disabled={!isAvailable}
+  onClick={() => this.props.addToOrder(this.props.index)}
+>
+  {isAvailable ? "Add to Order" : "Sold Out"}
+</button>
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
