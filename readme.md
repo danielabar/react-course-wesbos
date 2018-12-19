@@ -944,6 +944,88 @@ Optionally, can also define the function inline:
 </button>
 ```
 
+## Displaying Order State with JSX
+
+Will be working in `Order` component to display order state. Need to get `order` from state into `Order` component. Will also need the `fishes` from state which represents the inventory. As always, pass data into compoenents via props.
+
+Starting from `App` component:
+
+```javascript
+class App extends React.Component {
+  state = {
+    fishes: {},
+    order: {}
+  };
+  // ...
+  render() {
+    // ...
+    <Order fishes={this.state.fishes} order={this.state.order} />;
+  }
+}
+```
+
+Note: Can also use object spread to pass in every key from state, but not good practice because there may be more in state than component strictly needs.
+
+```javascript
+<Order {...this.state} />
+```
+
+Now in `Order` component, need to sum up order total before displaying it. Use `reduce` function on `orderIds`, which are extracted from `this.props.order` using `Object.keys`.
+
+Display orders in unordered list using `map` function on `orderIds`. Use _render function_ because the main `render` function is getting too big. When this happens, sign of doing too much in one component - either need to split up into multiple components, or keep in one component but write custom render function, eg: `renderOrder`.
+
+When displaying individual fish details, need to check that fish is available.
+
+As always, for any iterator, need to set `key` property.
+
+```javascript
+import React from "react";
+import { formatPrice } from "../helpers";
+class Order extends React.Component {
+  renderOrder = key => {
+    const fish = this.props.fishes[key];
+    const count = this.props.order[key];
+    const isAvailable = fish.status === "available";
+    if (!isAvailable) {
+      return (
+        <li key={key}>
+          Sorry {fish ? fish.name : "fish"} is no longer{" "}
+          <available className="" />
+        </li>
+      );
+    }
+    return (
+      <li key={key}>
+        {count} lbs {fish.name}
+        {formatPrice(count * fish.price)}
+      </li>
+    );
+  };
+  render() {
+    const orderIds = Object.keys(this.props.order);
+    const total = orderIds.reduce((prevTotal, key) => {
+      const fish = this.props.fishes[key];
+      const count = this.props.order[key];
+      const isAvailable = fish && fish.status === "available";
+      if (isAvailable) {
+        return prevTotal + count * fish.price;
+      }
+      return prevTotal;
+    }, 0);
+    return (
+      <div className="order-wrap">
+        <h2>Order</h2>
+        <ul className="order">{orderIds.map(this.renderOrder)}</ul>
+        <div className="total">
+          <strong>{formatPrice(total)}</strong>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default Order;
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
@@ -1013,9 +1095,13 @@ In March 2018 I re-recorded this course. Here are the things that I've updated.
 Here is the .htaccess file we use in the apache deployment video
 
 ```
+
 RewriteBase /
-RewriteRule ^index\.html$ - [L]
+RewriteRule ^index\.html\$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
+
+```
+
 ```
