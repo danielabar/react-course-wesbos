@@ -1169,6 +1169,192 @@ renderOrder = key => {
 };
 ```
 
+## Bi-directional Data Flow and Live State Editing
+
+Want to edit Inventory items and have them sync to firebase.
+
+Create a new component `EditFishForm`. Set the value of inputs to come from corresponding prop on `fish`:
+
+```javascript
+class EditFishForm extends React.Component {
+  render() {
+    return (
+      <div className="fish-edit">
+        <input type="text" name="name" value={this.props.fish.name} />
+        <input type="text" name="price" value={this.props.fish.price} />
+        <select type="text" name="status" value={this.props.fish.status}>
+          <option value="available">Fresh!</option>
+          <option value="unavailable">Sold Out!</option>
+        </select>
+        <textarea name="desc" value={this.props.fish.desc} />
+        <input type="text" name="image" value={this.props.fish.image} />
+      </div>
+    );
+  }
+}
+```
+
+Modify `App` to pass `fishes` into `Inventory` so that it can ultimately display an edit form for each fish in the inventory:
+
+```javascript
+class App extends React.Component {
+  // ...
+  render() {
+    // ...
+    <Inventory
+      fishes={this.state.fishes}
+      addFish={this.addFish}
+      loadSampleFishes={this.loadSampleFishes}
+    />;
+  }
+}
+```
+
+Add `EditFishForm` to `Inventory`, iterating over each fish, pass in fish instance to edit form so it can display the current fish value (description, price, etc.):
+
+```javascript
+class Inventory extends React.Component {
+  render() {
+    return (
+      // ...
+      <p>Inventory</p>
+      {Object.keys(this.props.fishes).map(key => (
+        <EditFishForm key={key} fish={this.props.fishes[key]} />
+      ))}
+      // ...
+    )
+  }
+}
+```
+
+After doing all of the above, will see warning in console: "Warning: Failed prop type: You provided a `value` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`."
+
+React will warn when state is put into an editable area without having anything to update it. So for now all the edit form fields are read-only. Because it would be bad to have state in more than once place.
+
+Add onChange handler to `EditFishForm` inputs. `event.currentTaget` is the DOM node the event was fired on.
+
+```javascript
+class EditFishForm extends React.Component {
+  handleChange = event => {
+    console.log(event.currentTarget.value);
+  };
+
+  render() {
+    return (
+      <div className="fish-edit">
+        <input
+          type="text"
+          name="name"
+          onChange={this.handleChange}
+          value={this.props.fish.name}
+        />
+        <input
+          type="text"
+          name="price"
+          onChange={this.handleChange}
+          value={this.props.fish.price}
+        />
+        <select
+          type="text"
+          name="status"
+          onChange={this.handleChange}
+          value={this.props.fish.status}
+        >
+          <option value="available">Fresh!</option>
+          <option value="unavailable">Sold Out!</option>
+        </select>
+        <textarea
+          name="desc"
+          onChange={this.handleChange}
+          value={this.props.fish.desc}
+        />
+        <input
+          type="text"
+          name="image"
+          onChange={this.handleChange}
+          value={this.props.fish.image}
+        />
+      </div>
+    );
+  }
+}
+```
+
+But even with that, React will not update value of textbox even if user types into it, because its not in state. To do this, need to make a copy of current fish from props and update it. But this update needs to be dynamic because user could be updating any of the fields. To solve this, use _computed property name_. Use `event.currentTaget.name` as dynamic property to update. With this technique, only need one change handler that can handle change to any field, i.e. don't need `handleNameChange`, `handlePriceChange`, etc.
+
+```javascript
+class EditFishForm extends React.Component {
+  handleChange = event => {
+    // update that fish
+    // 1. Take a copy of the current fish, overwriting the property that changed
+    const updatedFish = {
+      ...this.props.fish,
+      [event.currentTarget.name]: event.currentTarget.value
+    };
+  };
+}
+```
+
+To "push" this change up to App, back in `App` component, add an `updateFish` function, which can them be passed via props to `Inventory`, which can pass it to `EditFishForm`:
+
+```javascript
+class App extends React.Component {
+  updateFish = (key, updatedFish) => {
+    // 1. Take a copy of the current state
+    const fishes = { ...this.state.fishes };
+    // 2. Update that state
+    fishes[key] = updatedFish;
+    // 3. Set that to state
+    this.setState({ fishes });
+  };
+  render() {
+    //...
+    <Inventory
+      fishes={this.state.fishes}
+      addFish={this.addFish}
+      updateFish={this.updateFish}
+      loadSampleFishes={this.loadSampleFishes}
+    />;
+  }
+}
+```
+
+`Inventory` pass updateFish down to `EditFishForm`, also pass in key as index prop, will need it to callback `updateFish` function:
+
+```javascript
+class Inventory extends React.Component {
+  render() {
+    //...
+    {
+      Object.keys(this.props.fishes).map(key => (
+        <EditFishForm
+          key={key}
+          index={key}
+          fish={this.props.fishes[key]}
+          updateFish={this.props.updateFish}
+        />
+      ));
+    }
+  }
+}
+```
+
+Now make use of `updateFish` function in `EditFishForm`:
+
+```javascript
+class EditFishForm extends React.Component {
+  handleChange = event => {
+    // 1. Take a copy of the current fish, overwriting the property that changed
+    const updatedFish = {
+      ...this.props.fish,
+      [event.currentTarget.name]: event.currentTarget.value
+    };
+    // 2. Update the fish
+    this.props.updateFish(this.props.index, updatedFish);
+  };
+}
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
