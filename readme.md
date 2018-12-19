@@ -763,6 +763,85 @@ class App extends React.Component {
 }
 ```
 
+## Displaying State with JSX
+
+To display `fishes` from state in `App` component, add unordered list just below `Header`. Rather than implementing fish display directly in `App`, make it a `Fish` component so it could be re-used elsewhere.
+
+In `App` component, want to _loop_ over all the `fishes` in state. JSX doesn't have any logic built into it such as looping or conditionals from other templating languages. Instead, logic is done with plain ol' javascript. In this case, `state.fishes` is an object so will use `Object.keys` to iterate.
+
+```javascript
+class App extends React.Component {
+  render() {
+    // ...
+    <Header tagline="Fresh Seafood Market" />
+    <ul className="fishes">
+      {Object.keys(this.state.fishes).map(key => (
+        <p>{key}</p>
+      ))}
+    </ul>
+  }
+}
+```
+
+At this point, will render, but see warning in console: `Each child in an array or iterator should have a unique "key"prop.`
+
+In order for React to be performant, it needs to be able to get to component or portion of component that is updated. For any generated list of components, must provide a `key` property with any value that is unique:
+
+```javascript
+<ul className="fishes">
+  {Object.keys(this.state.fishes).map(key => (
+    <p key={key}>{key}</p>
+  ))}
+</ul>
+```
+
+To render `Fish` component rather than paragraph tag, still need `key` property:
+
+```javascript
+<ul className="fishes">
+  {Object.keys(this.state.fishes).map(key => (
+    <Fish key={key} />
+  ))}
+</ul>
+```
+
+In order for `Fish` component to have any data to render, pass it in via props from `App`:
+
+```javascript
+<ul className="fishes">
+  {Object.keys(this.state.fishes).map(key => (
+    <Fish key={key} details={this.state.fishes[key]} />
+  ))}
+</ul>
+```
+
+Now make use of `details` prop in `Fish` component. Notice no quotes around `src` and `alt` attributes of `img` tag. Also notice use of helper function to format price.
+
+```javascript
+import React from "react";
+import { formatPrice } from "../helpers";
+
+class Fish extends React.Component {
+  render() {
+    // Use ES6 destructuring to set multiple variables at once
+    const { image, name, price, desc, status } = this.props.details;
+    return (
+      <li className="menu-fish">
+        <img src={image} alt={name} />
+        <h3 className="fish-name">
+          {name}
+          <span className="price">{formatPrice(price)}</span>
+        </h3>
+        <p>{desc}</p>
+        <button>Add To Cart</button>
+      </li>
+    );
+  }
+}
+
+export default Fish;
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
