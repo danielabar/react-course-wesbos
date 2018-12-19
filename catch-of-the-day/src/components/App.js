@@ -15,10 +15,22 @@ class App extends React.Component {
   componentDidMount() {
     // extract params from data exposed by react-router
     const { params } = this.props.match;
+    // re-instate our localstorage
+    const localStorageRef = localStorage.getItem(params.storeId);
+    // update state if applicable
+    if (localStorageRef) {
+      this.setState({ order: JSON.parse(localStorageRef) });
+    }
     this.ref = base.syncState(`${params.storeId}/fishes`, {
       context: this,
       state: "fishes"
     });
+  }
+
+  componentDidUpdate() {
+    // detructure route params from react-router
+    const { params } = this.props.match;
+    localStorage.setItem(params.storeId, JSON.stringify(this.state.order));
   }
 
   componentWillUnmount() {

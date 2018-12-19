@@ -1120,6 +1120,55 @@ class App extends React.Component {
 }
 ```
 
+## Persisting Order State with localstorage
+
+State `order` is not being persisted to Firebase. This section will show how to use localtorage for persistence.
+
+Will be using another lifecycle method `componentDidUpdate`. Invoked after updating occurs. Want to update localstorage after order is updated.
+
+`componentDidUpdate` is also called the very first time after `componentDidMount` because state is updated (via re-base sync state). At that point in time, the order is `{}` from initial state. Need to "hydrate" it from local storage if available. This part is done in `componentDidMount`.
+
+Note that everything in localstorage is string.
+
+```javascript
+class App extends React.Component {
+  componentDidMount() {
+    // extract params from data exposed by react-router
+    const { params } = this.props.match;
+    // re-instate our localstorage
+    const localStorageRef = localStorage.getItem(params.storeId);
+    // update state if applicable
+    if (localStorageRef) {
+      this.setState({ order: JSON.parse(localStorageRef) });
+    }
+    this.ref = base.syncState(`${params.storeId}/fishes`, {
+      context: this,
+      state: "fishes"
+    });
+  }
+  componentDidUpdate() {
+    localStorage.setItem(
+      this.props.match.params.storeId,
+      JSON.stringify(this.state.order)
+    );
+  }
+}
+```
+
+Note that `order` is being updated before firebase sync. This means `Order` component will re-render, but it also depends on `fishes`, which won't be available for another second or so until firebase resync. To prevent errors in `Order`, make sure `fish` exists, otherwise return null:
+
+```javascript
+class Order extends React.Component {
+renderOrder = key => {
+  const fish = this.props.fishes[key];
+  const count = this.props.order[key];
+  const isAvailable = fish && fish.status === "available";
+  // Make sure the fish is loaded before we continue
+  if (!fish) return null;
+  // ...
+};
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
