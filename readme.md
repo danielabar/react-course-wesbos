@@ -1355,6 +1355,114 @@ class EditFishForm extends React.Component {
 }
 ```
 
+## Removing Items from State
+
+Want to delete items from inventory and order. Start at `App` and add `deleteFish` function, then pass it to `Inventory`:
+
+```javascript
+class App extends React.Component {
+  deleteFish = key => {
+    // 1. take a copy of state
+    const fishes = { ...this.state.fishes };
+    // 2. update the state (set to null for firebase to update)
+    fishes[key] = null;
+    // 3. update state
+    this.setState({ fishes });
+  };
+  render() {
+    // ...
+    <Inventory
+      fishes={this.state.fishes}
+      addFish={this.addFish}
+      updateFish={this.updateFish}
+      deleteFish={this.deleteFish}
+      loadSampleFishes={this.loadSampleFishes}
+    />;
+  }
+}
+```
+
+`Inventory` passes `deleteFish` function to `EditFishForm`:
+
+```javascript
+class Inventory extends React.Component {
+  render() {
+    // ...
+    Object.keys(this.props.fishes).map(key => (
+      <EditFishForm
+        key={key}
+        index={key}
+        fish={this.props.fishes[key]}
+        updateFish={this.props.updateFish}
+        deleteFish={this.props.deleteFish}
+      />
+    ))}
+  }
+}
+```
+
+Add remove button to `EditFishForm` and hook it up to `deleteFish` function:
+
+```javascript
+class EditFishForm extends React.Component {
+  render() {
+    // ...
+    <button onClick={() => this.props.deleteFish(this.props.index)}>
+      Remove Fish
+    </button>;
+  }
+}
+```
+
+Also want to delete item from order. Similar approach, start with `App`, define `removeFromOrder` and pass it to `Order` component:
+
+```javascript
+class App extends React.Component {
+  removeFromOrder = key => {
+    // 1. take a copy of state
+    const order = { ...this.state.order };
+    // 2. remove this order (not mirroring to firebase so delete is fine)
+    delete order[key];
+    // 3. call setState to update order in state
+    this.setState({ order });
+    // this should trigger componentDidUpdate and get localstorage updated as well
+  };
+
+  render() {
+    // ...
+    <ul className="fishes">
+      {Object.keys(this.state.fishes).map(key => (
+        <Fish
+          key={key}
+          index={key}
+          details={this.state.fishes[key]}
+          addToOrder={this.addToOrder}
+          removeFromOrder={this.removeFromOrder}
+          order={this.state.order}
+        />
+      ))}
+    </ul>;
+  }
+}
+```
+
+Then add button to `Order` to invoke `removeFromOrder`:
+
+```javascript
+class Order extends React.Component {
+  renderOrder = key => {
+    // ...
+    return (
+      <li key={key}>
+        {count} lbs {fish.name}
+        {formatPrice(count * fish.price)}
+        <button onClick={() => this.props.removeFromOrder(key)}>&times;</button>
+      </li>
+    );
+  };
+}
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
