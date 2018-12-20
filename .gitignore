@@ -4,6 +4,7 @@ node_modules/
 .idea
 notes.md
 .vscode
+build
 
 # firebase
 fb.txt

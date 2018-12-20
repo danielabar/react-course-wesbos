@@ -2093,6 +2093,58 @@ Database -> Rules
 
 See `security-rules.json` - Firebase uses javascript. Copy those rules to firebase.
 
+## Building React for Production
+
+Kill the dev mode app/watch that's currently running. Then run:
+
+```shell
+npm run build
+```
+
+Takes all js, css and compiles into one smaller js bundle, strips out warnings, proptypes. Creates a `build` dir.
+
+`static` subdir has js containing js bundle and .map file which is larger, but not loaded by users. Sourcemap only loaded by developers when debugging.
+
+`media` subdir has images and fonts.
+
+`css` subdir has one css file, webpack took the imported css and made an external file.
+
+`index.html` is modfied to point to the js and css.
+
+Example output:
+
+```
+> cotd@0.0.3 build /Users/dbaron/projects/wes-bos/react-course-wesbos/catch-of-the-day
+> react-scripts build
+
+Creating an optimized production build...
+Compiled successfully.
+
+File sizes after gzip:
+
+  180.38 KB  build/static/js/main.9ffdc1e9.js
+  2.87 KB    build/static/css/main.88c59a0a.css
+
+The project was built assuming it is hosted at the server root.
+You can control this with the homepage field in your package.json.
+For example, add this to build it for GitHub Pages:
+
+  "homepage" : "http://myname.github.io/myapp",
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  serve -s build
+
+Find out more about deployment here:
+
+  http://bit.ly/2vY88Kr
+```
+
+The `build` dir is a static site - can take it and send to any static hosting provider.
+
+HOWEVER, server needs to be configured to always look at index.html, no matter what the url is. eg: `https://somedomain.com/store/elegant-thoughtless-diagnoses` Server should NOT look in a subdir named `store`, it should always read index.html because this is a single page app with client side routing.
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 ## To Start
