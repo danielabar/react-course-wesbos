@@ -1,3 +1,50 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [React Course with Wes Bos](#react-course-with-wes-bos)
+  - [Thinking and Understanding React Components](#thinking-and-understanding-react-components)
+  - [Creating our First Components](#creating-our-first-components)
+  - [Writing HTML with JSX](#writing-html-with-jsx)
+  - [Loading CSS into our React Application](#loading-css-into-our-react-application)
+  - [Creating our application layout with components](#creating-our-application-layout-with-components)
+  - [Passing Dynamic data with props](#passing-dynamic-data-with-props)
+    - [React Devtools Trick](#react-devtools-trick)
+  - [Stateless Functional Components](#stateless-functional-components)
+  - [Routing with React Router](#routing-with-react-router)
+  - [Helper and Utility Functions](#helper-and-utility-functions)
+  - [Events, Refs and this Binding](#events-refs-and-this-binding)
+    - [Binding](#binding)
+  - [Handling Events](#handling-events)
+  - [Understanding State](#understanding-state)
+  - [Loading data into state onClick](#loading-data-into-state-onclick)
+  - [Displaying State with JSX](#displaying-state-with-jsx)
+  - [Updating our Order State](#updating-our-order-state)
+  - [Displaying Order State with JSX](#displaying-order-state-with-jsx)
+  - [Persisting our State with Firebase](#persisting-our-state-with-firebase)
+  - [Persisting Order State with localstorage](#persisting-order-state-with-localstorage)
+  - [Bi-directional Data Flow and Live State Editing](#bi-directional-data-flow-and-live-state-editing)
+  - [Removing Items from State](#removing-items-from-state)
+  - [Animating React Components](#animating-react-components)
+    - [Starting with mount/unmount:](#starting-with-mountunmount)
+      - [Styles](#styles)
+    - [Animating on Changes](#animating-on-changes)
+  - [Component Validation with PropTypes](#component-validation-with-proptypes)
+  - [Authentication](#authentication)
+- [Original Readme: React For Beginners — ReactForBeginners.com](#original-readme-react-for-beginners--reactforbeginnerscom)
+  - [To Start](#to-start)
+    - [Code Use](#code-use)
+- [Frequently Asked Questions](#frequently-asked-questions)
+      - [:question: I'm getting error "Pre-built binaries not found for grpc@1.10.1 and node@10.3.0" and "Tried to download(403): https://storage.googleapis.com....."](#question-im-getting-error-pre-built-binaries-not-found-for-grpc1101-and-node1030-and-tried-to-download403-httpsstoragegoogleapiscom)
+      - [:question: I tried installing the Babel syntax highlighter but it didn't work!](#question-i-tried-installing-the-babel-syntax-highlighter-but-it-didnt-work)
+      - [:question: I can't set Babel as the default syntax highlighter!](#question-i-cant-set-babel-as-the-default-syntax-highlighter)
+      - [:question: I can't see the React tab in my dev tools](#question-i-cant-see-the-react-tab-in-my-dev-tools)
+      - [:question: `npm start` doesn't update the app on file save, or doesn't run correctly.](#question-npm-start-doesnt-update-the-app-on-file-save-or-doesnt-run-correctly)
+  - [Changes In the 2018 RE-Record](#changes-in-the-2018-re-record)
+  - [htaccess](#htaccess)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # React Course with Wes Bos
 
 > My course notes
