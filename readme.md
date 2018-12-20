@@ -1463,11 +1463,322 @@ class Order extends React.Component {
 }
 ```
 
-# Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
+## Animating React Components
+
+Two different kinds of animation:
+
+1. Mounting/Unmounting components, eg: when a fish is added to order, it slides in on `Order` component, and when removed from Order, slides out. This is animation on `componentDidMount` and `componentWillUnmount1.
+2. Animation on something changing.
+
+### Starting with mount/unmount:
+
+- Add some more imports to `Order`.
+- Wrap the list of orders in `TransitionGroup` component, specifying what dom element it should render out, `ul` in this case.
+- Wrap the `li` elements in `renderOrder` with `CSSTransition` element, which takes a few props:
+  - `classNames`
+  - `key`
+  - `timeout`: Object of how fast items animate in/out, specified in ms
+- Also the return `li` 'Sorry fish no longer available' needs to be wrapped in `CSSTransition` component. Later will show how to avoid some of this duplication.
+
+```javascript
+import { TransitionGroup, CSSTransition } from "react-transition-group";
+class Order extends React.Component {
+  renderOrder() {
+    // ...
+    if (!isAvailable) {
+      return (
+        <CSSTransition
+          classNames="order"
+          key={key}
+          timeout={{ enter: 500, exit: 500 }}
+        >
+          <li key={key}>
+            Sorry {fish ? fish.name : "fish"} is no longer{" "}
+            <available className="" />
+          </li>
+        </CSSTransition>
+      );
+    }
+    return (
+      <CSSTransition
+        classNames="order"
+        key={key}
+        timeout={{ enter: 250, exit: 250 }}
+      >
+        <li key={key}>
+          {count} lbs {fish.name}
+          {formatPrice(count * fish.price)}
+          <button onClick={() => this.props.removeFromOrder(key)}>
+            &times;
+          </button>
+        </li>
+      </CSSTransition>
+    );
+  }
+  render() {
+    // ...
+    <TransitionGroup component="ul" className="order">
+      {orderIds.map(this.renderOrder)}
+    </TransitionGroup>;
+    // ...
+  }
+}
+```
+
+#### Styles
+
+Comment out related styles in `_animations.styl`: order-enter/exit, count-enter/exit (note: stylus similar to sass but uses 2-space indentation, don't need semi-colons or curly braces).
+
+Need to work it into the build, but with create-react-app, unable to modify webpack config unless `eject`. For this course, two additional npm run scripts available `styles` and `styles:watch`.
+
+From terminal, stop app, then run `npm run styles:watch`. But that stops app.
+
+`concurrently` will run multiple tasks at the same time: `npm run watch`.
+
+To see what the `CSSTransition` component does (wrapped around each `li` in `Order`), change enter and exit values to 5000 (i.e. 5s), then watch Element tab of dev tools as order items are added/removed.
+
+When a new `li` is added, some classes added to it for 5s, then removed:
+
+```html
+<li class="order-enter order-enter-active">...</li>
+```
+
+And when an existing `li` is removed, these classes added to it for 5s, then removed:
+
+```html
+<li class="order-exit order-exit-active">...</li>
+```
+
+These are the css classes you write to implement the animation.
+
+Experiment to understand how this works, add to `_animations.styl`:
+
+```styl
+.order-enter
+  background red
+  &.order-enter-active
+    background yellow
+```
+
+Will only see the yellow show up for 5s, now add in transition, and will see the item start red, and transition to yellow over 5s:
+
+```styl
+.order-enter
+  background red
+  transition 5s
+  &.order-enter-active
+    background yellow
+```
+
+The `order-enter` class is being added immediately, then 0.1ms later, adds class of `order-enter-active`. This allows you to transition any css properties from starting state `whatever-enter` to end state `whatever-enter-active`. Then after 5s (or whatever you confirmed on `CSSTransition` element, all the animation classes are removed).
+
+To create a slide in from the left effect, use `translateX` with a value of -120%,to start the element hidden out of view, then transition it to `translateX` of 0 (i.e. just regular position):
+
+```styl
+.order-enter
+  background red
+  transform: translateX(-120%)
+  transition 5s
+  &.order-enter-active
+    transform: translateX(0)
+    background yellow
+```
+
+To create opposite effect on `order-exit`, start where it is, and when active, translateX to positive value beyond 100%:
+
+```styl
+.order-exit
+  background thistle
+  transform: translateX(0)
+  transition 5s
+  &.order-exit-active
+    background palegoldenrod
+    transform: translateX(120%)
+```
+
+Trick to transition height (because cannot transition from 0 to auto), use `max-height` and `padding` - will come in regular height then stretch vertically a bit, then go back to regular height. You may occasionally need `!important` to overwrite regular app styles:
+
+```styl
+.order-enter
+  background red
+  transform: translateX(-120%)
+  transition 5s
+  max-height 0
+  padding 0 !important
+  &.order-enter-active
+    transform: translateX(0)
+    max-height 60px
+    background yellow
+    padding 2rem 0 !important
+```
+
+To make animations "snappier", reduce transition in css to 0.5s, but also need to update enter/exit values on `CSSTransition` component to `500` (i.e. 500ms). Also get rid of colors (was just for experiment), final version:
+
+```styl
+.order-enter
+  transform: translateX(-120%)
+  transition 0.5s
+  max-height 0
+  padding 0 !important
+  &.order-enter-active
+    transform: translateX(0)
+    max-height 60px
+    padding 2rem 0 !important
+
+.order-exit
+  transform: translateX(0)
+  transition 0.5s
+  &.order-exit-active
+    transform: translateX(120%)
+    padding 0
+```
+
+To avoid repeating `CSSTransition` options, pull them out to const, then spread them into props:
+
+```javascript
+class Order extends React.Component {
+  renderOrder = key => {
+    // ...
+    const transitionOptions = {
+      classNames: "order",
+      key,
+      timeout: { enter: 500, exit: 500 }
+    };
+    // ...
+    if (!isAvailable) {
+      return (
+        <CSSTransition {...transitionOptions}>
+          <li key={key}>
+            Sorry {fish ? fish.name : "fish"} is no longer{" "}
+            <available className="" />
+          </li>
+        </CSSTransition>
+      );
+    }
+    return (
+      <CSSTransition {...transitionOptions}>
+        <li key={key}>
+          <span>
+            <TransitionGroup component="span" className="count">
+              <CSSTransition
+                classNames="count"
+                key={count}
+                timeout={{ enter: 500, exit: 500 }}
+              >
+                <span>{count}</span>
+              </CSSTransition>
+            </TransitionGroup>
+            lbs {fish.name}
+            {formatPrice(count * fish.price)}
+            <button onClick={() => this.props.removeFromOrder(key)}>
+              &times;
+            </button>
+          </span>
+        </li>
+      </CSSTransition>
+    );
+  };
+}
+```
+
+### Animating on Changes
+
+When order is updated (eg: add a fish that's already there), quantity and price changes. This is not mount/unmount, but replacing a div that's already there. Eg: 1lb of Lobster already in order, when add another Lobster, want to animate `1` out of view and `2` into view.
 
 Starter files for the React For Beginners course. Come <a href="https://ReactForBeginners.com/">Learn React</a> with me!
 
 The code in this repo meant to be a reference point for anyone following along with the video course.
+
+Start with `Order` component:
+
+- Wrap count item in `span` element
+- Wrap entire contents of `li` in `span`
+- Wrap spanned count in `TransitionGroup`, specifying it should render a span with class of `count`
+- Wrap spanned count in `CSSTransition`, specifying it should generate animation classes starting with `count`. By making the key `count` rather than `key`, will generate two spans, one for old count and one for new count.
+
+```javascript
+class Order extends React.Component {
+  renderOrder = key => {
+    // ...
+    return (
+      <CSSTransition
+        classNames="order"
+        key={key}
+        timeout={{ enter: 500, exit: 500 }}
+      >
+        <li key={key}>
+          <span>
+            <TransitionGroup component="span" className="count">
+              <CSSTransition
+                classNames="count"
+                key={count}
+                timeout={{ enter: 5000, exit: 5000 }}
+              >
+                <span>{count}</span>
+              </CSSTransition>
+            </TransitionGroup>
+            lbs {fish.name}
+            {formatPrice(count * fish.price)}
+            <button onClick={() => this.props.removeFromOrder(key)}>
+              &times;
+            </button>
+          </span>
+        </li>
+      </CSSTransition>
+    );
+  };
+}
+```
+
+Now observe dev tools for a fish already in order, then click Add to Order to increment the count:
+
+Before:
+
+```hrml
+<span class="count>
+  <span>6</span>
+</span>
+```
+
+During - for duration specified in `CSSTransition` `timeout` prop - notice how teh new value is entered and the old value is exited:
+
+```hrml
+<span class="count>
+  <span class="count-enter count-enter-active">7</span>
+  <span class="count-exit count-exit-active">6</span>
+</span>
+```
+
+After:
+
+```hrml
+<span class="count>
+  <span>7</span>
+</span>
+```
+
+Just like with mount/unmount, these classes are to be implemented in \_animations.styl. Use `translateY` to get top-to-bottom effect. Use absolute positioning to make the exiting span overlap the entering one:
+
+```styl
+.count-enter
+  transition 0.5s
+  // start the new count value underneath the old one
+  transform translateY(100%)
+  &.count-enter-active
+    transform translateY(0)
+
+.count-exit
+  transition 0.5s
+  position absolute
+  left 0
+  bottom 0
+  // start at the bottom and go to the top
+  transform translateY(0)
+  &.count-exit-active
+    transform translateY(-100%)
+```
+
+# Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 ## To Start
 

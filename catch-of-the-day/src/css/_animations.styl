@@ -8,36 +8,33 @@
 .order-enter
   transform: translateX(-120%)
   transition 0.5s
-  max-height: 0
+  max-height 0
   padding 0 !important
   &.order-enter-active
-    max-height 60px
     transform: translateX(0)
+    max-height 60px
     padding 2rem 0 !important
 
 .order-exit
-  transition 0.5s
   transform: translateX(0)
+  transition 0.5s
   &.order-exit-active
     transform: translateX(120%)
-    padding: 0
-
+    padding 0
 
 .count-enter
-  background: red
-  transition .5s
+  transition 0.5s
+  // start the new count value underneath the old one
   transform translateY(100%)
   &.count-enter-active
-    background: yellow
     transform translateY(0)
 
 .count-exit
-  background: black
-  transform translateY(0)
-  transition .5s
+  transition 0.5s
   position absolute
   left 0
   bottom 0
+  // start at the bottom and go to the top
+  transform translateY(0)
   &.count-exit-active
-    background green
-    transform translateY(-100%) scale(3)
+    transform translateY(-100%)
