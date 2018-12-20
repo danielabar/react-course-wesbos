@@ -1778,6 +1778,107 @@ Just like with mount/unmount, these classes are to be implemented in \_animation
     transform translateY(-100%)
 ```
 
+## Component Validation with PropTypes
+
+PropTypes are for validating data that is being passed into a component via props to make sure its correct data type, shape etc.
+
+eg, `Header` component accepts `tagline` props for displaying. How would someone know (without having to read entire component) that it takes a prop of `tagline` and expects it to be a string?
+
+PropTypes allow to specify this ahead of time and provide warning in console if conditions not met.
+
+Used to be built into react but now in a separate package `prop-types`.
+
+Example, `isRequired` is optional to add if it must be provided.
+
+```javascript
+import React from "react";
+import PropTypes fro 'prop-types';
+
+const Header = props => (
+  // ...
+);
+
+Header.propTypes = {
+  tagline: PropTypes.string.isRequired
+};
+```
+
+It's defined at end of file `Header.propTypes = ...` because `Header` is a stateless functional component.
+
+To see PropTypes validation in action, temporarily edit `App` component, remove tagline from Header:
+
+```javascript
+class App extends React.Component {
+  render() {
+    // ...
+    <Header />;
+  }
+}
+```
+
+Will see warning in console:
+
+![proptype error](doc-images/proptype-error.png "proptype error")
+
+Try passing in tagline as boolean:
+
+```javascript
+class App extends React.Component {
+  render() {
+    // ...
+    <Header />;
+  }
+}
+```
+
+Then console shows:
+
+![prop type datatype](doc-images/proptype-error-2.png "prop type datatype")
+
+Console errors are development helpers, they don't show up in production.
+
+Read the [docs](https://reactjs.org/docs/typechecking-with-proptypes.html#proptypes) for all options.
+
+`shape` is useful for describing object props.
+
+Add proptypes for all our components so far.
+
+`Fish` is a regular react component so we can use `static propTypes = ...` Use `static` because propTypes is being declared once for *all* instances of `Fish` component.
+
+`details` is an object, could use PropTypes.object but that's too lenient, would pass for any object. We need an object that has specific properties: image, name, price, etc. Use `shape` which is a function that accepts an object - here specify all the properties `details` should have:
+
+```javascript
+class Fish extends React.Component {
+  static propTypes = {
+    addToOrder: PropTypes.func,
+    details: PropTypes.shape({
+      image: PropTypes.string,
+      name: PropTypes.string,
+      desc: PropTypes.string,
+      status: PropTypes.string,
+      price: PropTypes.number
+    })
+  };
+  // ...
+}
+```
+
+**Good Practice:** Anytime you start writing `this.props...` in a component, stop and add a PropType for it.
+
+For `App` component, it only needs `match` prop from react-router. Can assume it will be providing the correct shape so just declare it as object:
+
+```javascript
+class App extends React.Component {
+  state = {...}
+
+  static propTypes = {
+    match: PropTypes.object
+  };
+
+  // ...
+}
+```
+
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
 ## To Start
