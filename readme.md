@@ -1,6 +1,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+**Table of Contents** _generated with [DocToc](https://github.com/thlorenz/doctoc)_
 
 - [React Course with Wes Bos](#react-course-with-wes-bos)
   - [Thinking and Understanding React Components](#thinking-and-understanding-react-components)
@@ -31,11 +32,13 @@
     - [Animating on Changes](#animating-on-changes)
   - [Component Validation with PropTypes](#component-validation-with-proptypes)
   - [Authentication](#authentication)
+  - [Building React for Production](#building-react-for-production)
+  - [Ejecting from create-react-app](#ejecting-from-create-react-app)
 - [Original Readme: React For Beginners — ReactForBeginners.com](#original-readme-react-for-beginners--reactforbeginnerscom)
   - [To Start](#to-start)
     - [Code Use](#code-use)
 - [Frequently Asked Questions](#frequently-asked-questions)
-      - [:question: I'm getting error "Pre-built binaries not found for grpc@1.10.1 and node@10.3.0" and "Tried to download(403): https://storage.googleapis.com....."](#question-im-getting-error-pre-built-binaries-not-found-for-grpc1101-and-node1030-and-tried-to-download403-httpsstoragegoogleapiscom)
+      - [:question: I'm getting error "Pre-built binaries not found for grpc@1.10.1 and node@10.3.0" and "Tried to download(403): https://storage.googleapis.com....."](#question-im-getting-error-%22pre-built-binaries-not-found-for-grpc1101-and-node1030%22-and-%22tried-to-download403-httpsstoragegoogleapiscom%22)
       - [:question: I tried installing the Babel syntax highlighter but it didn't work!](#question-i-tried-installing-the-babel-syntax-highlighter-but-it-didnt-work)
       - [:question: I can't set Babel as the default syntax highlighter!](#question-i-cant-set-babel-as-the-default-syntax-highlighter)
       - [:question: I can't see the React tab in my dev tools](#question-i-cant-see-the-react-tab-in-my-dev-tools)
@@ -1967,7 +1970,7 @@ const Login = props => (
 Use `Login` into `Inventory` component. `authenticate` function will create a new auth provider. Dynamically lookup function name so we don't need if statement to support multiple providers.
 
 ```javascript
-import firebase from 'firebase';
+import firebase from "firebase";
 // this is how you import both default and named exports
 import base, { firebaseApp } from "../base";
 // other imports...
@@ -2000,7 +2003,7 @@ class App extends React.Component {
       deleteFish={this.deleteFish}
       loadSampleFishes={this.loadSampleFishes}
       storeId={this.props.match.params.storeId}
-    />
+    />;
   }
 }
 ```
@@ -2080,9 +2083,9 @@ class Inventory extends React.Component {
   componentDidMount() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        this.authHandler({user})
+        this.authHandler({ user });
       }
-    })
+    });
   }
 }
 ```
@@ -2144,6 +2147,16 @@ Find out more about deployment here:
 The `build` dir is a static site - can take it and send to any static hosting provider.
 
 HOWEVER, server needs to be configured to always look at index.html, no matter what the url is. eg: `https://somedomain.com/store/elegant-thoughtless-diagnoses` Server should NOT look in a subdir named `store`, it should always read index.html because this is a single page app with client side routing.
+
+## Ejecting from create-react-app
+
+This course has been using `create-react-app`. Abstracts all the difficult parts of tooling involved in building a react app. Sets up webpack defaults that are good for most projects and hides the details behind an npm package `react-scripts`.
+
+But if you want to do anything different/custom from defaults - such as different eslint setup, webpack config, different babel plugins etc. Then need to `eject` from create-react-app.
+
+**Eject is one way!**
+
+Cannot "uneject" after eject. Recommend doing this on a branch for experimentation, eg: `feature/eject`.
 
 # Original Readme: React For Beginners — [ReactForBeginners.com](https://ReactForBeginners.com)
 
